@@ -10,14 +10,10 @@
   "postCreateCommand": "sudo apt-get update && sudo apt-get install -y postgresql-client && python3 -m pip install -r requirements.txt && cp .env.example .env",
   "postStartCommand": "docker compose up -d",
 
-  "forwardPorts": [5432, 9000, 9001, 6379, 9092, 4566],
+  "forwardPorts": [4566, 5432],
   "portsAttributes": {
-    "5432": { "label": "PostgreSQL" },
-    "9000": { "label": "MinIO API" },
-    "9001": { "label": "MinIO Console" },
-    "6379": { "label": "Redis" },
-    "9092": { "label": "Redpanda" },
-    "4566": { "label": "LocalStack" }
+    "4566": { "label": "LocalStack (AWS)" },
+    "5432": { "label": "PostgreSQL (RDS Mock)" }
   },
 
   "customizations": {
@@ -25,7 +21,6 @@
       "extensions": [
         "ms-python.python",
         "ms-azuretools.vscode-docker",
-        "hashicorp.terraform",
         "mtxr.sqltools",
         "mtxr.sqltools-driver-pg"
       ],
