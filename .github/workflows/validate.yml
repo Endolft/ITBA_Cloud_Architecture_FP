@@ -1,0 +1,46 @@
+name: validate
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate compose
+        run: docker compose config
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python deps
+        run: pip install -r requirements.txt
+
+      - name: Validate Python syntax
+        run: |
+          for script in \
+            scripts/process_events.py \
+            scripts/upload_to_object_storage.py \
+            scripts/load_postgres.py \
+            scripts/query_analytics.py \
+            scripts/produce_sqs.py \
+            scripts/consume_sqs.py \
+            scripts/produce_kafka.py \
+            scripts/consume_kafka.py; do
+            python -m py_compile "$script"
+          done
+
+      - name: Validate Terraform/OpenTofu
+        run: |
+          if command -v terraform &>/dev/null; then
+            cd infra/terraform && terraform fmt -check && terraform validate
+          elif command -v tofu &>/dev/null; then
+            cd infra/terraform && tofu fmt -check && tofu validate
+          else
+            echo "terraform/opentofu no disponible en este runner, se omite"
+          fi
