@@ -7,6 +7,17 @@ source "$DIR/../config.sh"
 
 echo "Configurando repositorio Amazon ECR..."
 
+# Check if we're using LocalStack
+if [[ "$ENDPOINT" == *"localhost:4566"* ]] || [[ "$ENDPOINT" == *"127.0.0.1:4566"* ]]; then
+    echo "⚠️  ECR no está disponible en LocalStack Community Edition"
+    echo "Para desarrollo local, las imágenes Docker se construyen directamente"
+    echo "Para usar ECR, despliega en AWS con credenciales reales"
+    exit 0
+fi
+
+# Production AWS deployment - use real ECR
+echo "Usando ECR en AWS..."
+
 # 1. Consultar si el repositorio ya existe
 REPO_URI=$(aws ecr describe-repositories \
   --repository-names "$REPO_NAME" \
@@ -21,7 +32,6 @@ if [ "$REPO_URI" == "None" ] || [ -z "$REPO_URI" ]; then
     
     REPO_URI=$(aws ecr create-repository \
       --repository-name "$REPO_NAME" \
-      --image-scanning-configuration scanOnPush=true \
       --region $REGION \
       --endpoint-url $ENDPOINT \
       --query 'repository.repositoryUri' \

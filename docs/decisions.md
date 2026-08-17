@@ -52,14 +52,20 @@ Resultado: cadena de confianza estricta (`Internet ➔ ALB:80 ➔ ECS:8000 ➔ R
 
 ---
 
-### 004 - Registro de Contenedores Privado en ECR con Escaneo Activo
+### 004 - Estrategia de Registro de Contenedores (ECR en AWS vs. Daemon Local en LocalStack)
 
-Decision: utilizar un repositorio privado en Amazon ECR (`taller-backend`) con la opción de escaneo automático de vulnerabilidades activa (`scanOnPush=true`).
+Decision: En AWS real usamos ECR (taller-backend), pero para correrlo localmente con LocalStack usamos directamente el Docker de la máquina (taller-backend:latest).
 
-Contexto: almacenar las imágenes Docker del Backend en un registro seguro y centralizado antes de ser desplegadas en el orquestador de contenedores (ECS).
+Contexto: LocalStack ahora pide la versión Pro (de pago) para emular ECR. Para no pagar ni agregar complejidad, hicimos que los scripts sean inteligentes: si detectan que corren en local, construyen la imagen en Docker y siguen de largo; si corren en AWS real, crean el repositorio ECR normalmente.
 
-Alternativas: usar Docker Hub público (inseguro para código propietario) o compilar la imagen localmente sin registro (no simula un flujo Cloud/DevOps real).
+Alternativas: 
 
-Tradeoff: agrega el paso de etiquetado (`docker tag`) y publicación (`docker push`) al ciclo de compilación, a cambio de simular paridad total con el entorno de producción de AWS y adherir a prácticas DevSecOps.
+Pagar LocalStack Pro: Innecesario para un laboratorio.
 
-Resultado: repositorio ECR automatizado, aislado y listo para recibir las imágenes de la aplicación.
+Borrar create_ecr.sh: Nos dejaría sin el script para cuando queramos subir esto a AWS de verdad.
+
+Levantar un Registry local: Agregaba otro contenedor y más consumo de memoria sin aportar nada.
+
+Tradeoff: en el entorno local se omite el `docker push` hacia el endpoint de LocalStack para evitar limitaciones de la versión gratuita, manteniendo el script de infraestructura intacto y preparado para crear el repositorio real al desplegar en AWS.
+
+Resultado: flujo de desarrollo local gratuito, rápido y resiliente, con scripts de IaC 100% portables a entornos reales de AWS.

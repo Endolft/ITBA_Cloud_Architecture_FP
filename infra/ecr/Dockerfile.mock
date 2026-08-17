@@ -1,0 +1,17 @@
+FROM python:3.9-slim
+
+RUN echo 'from http.server import HTTPServer, BaseHTTPRequestHandler\n\
+class Handler(BaseHTTPRequestHandler):\n\
+    def do_GET(self):\n\
+        self.send_response(200)\n\
+        self.send_header("Content-type", "application/json")\n\
+        self.end_headers()\n\
+        self.wfile.write(b"{\"status\": \"ok\", \"service\": \"taller-backend-mock\"}")\n\
+\n\
+server = HTTPServer(("0.0.0.0", 8000), Handler)\n\
+print("🚀 Backend Mock escuchando en el puerto 8000...")\n\
+server.serve_forever()' > server.py
+
+EXPOSE 8000
+
+CMD ["python", "server.py"]
