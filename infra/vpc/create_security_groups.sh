@@ -74,7 +74,7 @@ add_ingress_rule() {
           --port $PORT \
           --source-group $SOURCE \
           --region $REGION \
-          --endpoint-url $ENDPOINT 2>/dev/null || true
+          --endpoint-url $ENDPOINT > /dev/null 2>&1 || true
     else
         aws ec2 authorize-security-group-ingress \
           --group-id $SG_ID \
@@ -82,7 +82,7 @@ add_ingress_rule() {
           --port $PORT \
           --cidr $SOURCE \
           --region $REGION \
-          --endpoint-url $ENDPOINT 2>/dev/null || true
+          --endpoint-url $ENDPOINT > /dev/null 2>&1 || true
     fi
 }
 
