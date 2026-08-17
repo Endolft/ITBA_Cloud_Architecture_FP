@@ -24,7 +24,7 @@ services:
     image: localstack/localstack:3
     container_name: itba-fp-localstack
     environment:
-      SERVICES: s3,iam,ec2,secretsmanager,elbv2,cloudfront,rds,ecs
+      SERVICES: s3,iam,ec2,secretsmanager,cloudfront,rds,ecs
       AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
     ports:
       - "4566:4566"
@@ -36,6 +36,20 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+
+  alb-mock:
+    container_name: itba-fp-alb-mock
+    image: traefik:v2.10
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
 
 volumes:
   postgres-data:

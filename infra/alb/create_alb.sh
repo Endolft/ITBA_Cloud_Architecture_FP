@@ -10,6 +10,20 @@ TG_NAME="taller-tg"
 
 echo "Configurando Application Load Balancer (ALB)..."
 
+# --- DETECCIÓN DE ENTORNO LOCAL ---
+if [[ "$ENDPOINT" == *"localhost:4566"* ]] || [[ "$ENDPOINT" == *"127.0.0.1:4566"* ]]; then
+    echo "⚠️  ALB (ELBv2) no está disponible en LocalStack Community."
+    echo "Para desarrollo local, Traefik está manejando el ruteo en el puerto 80."
+    echo "Para usar ALB real, despliega en AWS con credenciales reales."
+    echo "========================================="
+    echo "✅ Módulo ALB (Simulado) procesado correctamente."
+    echo "========================================="
+    exit 0
+fi
+# ----------------------------------
+
+echo "Usando ALB en AWS..."
+
 # 1. Recuperar IDs de recursos base (VPC, Subredes Públicas y SG)
 VPC_ID=$(get_vpc_id)
 SUBNET_1=$(get_subnet_id "taller-public-subnet-1")
