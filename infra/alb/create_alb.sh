@@ -13,7 +13,7 @@ echo "Configurando Application Load Balancer (ALB)..."
 # --- DETECCIÓN DE ENTORNO LOCAL ---
 if [[ "$ENDPOINT" == *"localhost:4566"* ]] || [[ "$ENDPOINT" == *"127.0.0.1:4566"* ]]; then
     echo "⚠️  ALB (ELBv2) no está disponible en LocalStack Community."
-    echo "Para desarrollo local, Traefik está manejando el ruteo en el puerto 80."
+    echo "Para desarrollo local, Caddy (alb-mock) maneja el ruteo en el puerto 80."
     echo "Para usar ALB real, despliega en AWS con credenciales reales."
     echo "========================================="
     echo "✅ Módulo ALB (Simulado) procesado correctamente."
