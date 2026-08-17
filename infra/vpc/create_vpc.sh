@@ -2,21 +2,11 @@
 
 set -e
 
-export AWS_ACCESS_KEY_ID="test"
-export AWS_SECRET_ACCESS_KEY="test"
-export AWS_DEFAULT_REGION="us-east-1"
-
-REGION="us-east-1"
-ENDPOINT="http://localhost:4566"
-VPC_NAME="taller-vpc"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+source "$DIR/../config.sh"
 
 # 1. Buscar si la VPC ya existe
-VPC_ID=$(aws ec2 describe-vpcs \
-  --filters "Name=tag:Name,Values=$VPC_NAME" \
-  --region $REGION \
-  --endpoint-url $ENDPOINT \
-  --query 'Vpcs[0].VpcId' \
-  --output text 2>/dev/null || echo "None")
+VPC_ID=$(get_vpc_id)
 
 # 2. Crear si no existe
 if [ "$VPC_ID" == "None" ] || [ -z "$VPC_ID" ]; then

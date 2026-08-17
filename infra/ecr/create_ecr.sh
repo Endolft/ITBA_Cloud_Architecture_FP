@@ -2,13 +2,8 @@
 
 set -e
 
-export AWS_ACCESS_KEY_ID="test"
-export AWS_SECRET_ACCESS_KEY="test"
-export AWS_DEFAULT_REGION="us-east-1"
-
-REGION="us-east-1"
-ENDPOINT="http://localhost:4566"
-REPO_NAME="taller-backend"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+source "$DIR/../config.sh"
 
 echo "Configurando repositorio Amazon ECR..."
 

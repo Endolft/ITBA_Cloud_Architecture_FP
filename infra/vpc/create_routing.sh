@@ -2,25 +2,17 @@
 
 set -e
 
-export AWS_ACCESS_KEY_ID="test"
-export AWS_SECRET_ACCESS_KEY="test"
-export AWS_DEFAULT_REGION="us-east-1"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+source "$DIR/../config.sh"
 
-REGION="us-east-1"
-ENDPOINT="http://localhost:4566"
-VPC_NAME="taller-vpc"
+
 IGW_NAME="taller-igw"
 RT_NAME="taller-public-rt"
 
 echo "Configurando la capa de enrutamiento pública..."
 
 # 1. Obtener ID de la VPC
-VPC_ID=$(aws ec2 describe-vpcs \
-  --filters "Name=tag:Name,Values=$VPC_NAME" \
-  --region $REGION \
-  --endpoint-url $ENDPOINT \
-  --query 'Vpcs[0].VpcId' \
-  --output text 2>/dev/null || echo "None")
+VPC_ID=$(get_vpc_id)
 
 if [ "$VPC_ID" == "None" ] || [ -z "$VPC_ID" ]; then
     echo "ERROR: No existe la VPC '$VPC_NAME'. Ejecutá primero create_vpc.sh"
@@ -98,12 +90,7 @@ fi
 # 4. Asociar únicamente las Subredes Públicas a esta Tabla de Rutas
 associate_subnet() {
     local SUBNET_NAME=$1
-    SUBNET_ID=$(aws ec2 describe-subnets \
-      --filters "Name=tag:Name,Values=$SUBNET_NAME" \
-      --region $REGION \
-      --endpoint-url $ENDPOINT \
-      --query 'Subnets[0].SubnetId' \
-      --output text 2>/dev/null || echo "None")
+    SUBNET_ID=$(get_subnet_id "$SUBNET_NAME")
 
     if [ "$SUBNET_ID" != "None" ] && [ -n "$SUBNET_ID" ]; then
         ASSOC_ID=$(aws ec2 describe-route-tables \

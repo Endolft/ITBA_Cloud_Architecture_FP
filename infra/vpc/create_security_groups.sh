@@ -2,40 +2,20 @@
 
 set -e
 
-export AWS_ACCESS_KEY_ID="test"
-export AWS_SECRET_ACCESS_KEY="test"
-export AWS_DEFAULT_REGION="us-east-1"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+source "$DIR/../config.sh"
 
-REGION="us-east-1"
-ENDPOINT="http://localhost:4566"
-VPC_NAME="taller-vpc"
 
 echo "Configurando Security Groups..."
 
 # 1. Obtener ID de la VPC
-VPC_ID=$(aws ec2 describe-vpcs \
-  --filters "Name=tag:Name,Values=$VPC_NAME" \
-  --region $REGION \
-  --endpoint-url $ENDPOINT \
-  --query 'Vpcs[0].VpcId' \
-  --output text 2>/dev/null || echo "None")
+VPC_ID=$(get_vpc_id)
 
 if [ "$VPC_ID" == "None" ] || [ -z "$VPC_ID" ]; then
     echo "❌ ERROR: No existe la VPC '$VPC_NAME'. Ejecutá primero create_vpc.sh"
     exit 1
 fi
 
-
-# Consulta si un SG existe y devuelve su ID
-get_sg_id() {
-    local SG_NAME=$1
-    aws ec2 describe-security-groups \
-      --filters "Name=group-name,Values=$SG_NAME" "Name=vpc-id,Values=$VPC_ID" \
-      --region $REGION \
-      --endpoint-url $ENDPOINT \
-      --query 'SecurityGroups[0].GroupId' \
-      --output text 2>/dev/null || echo "None"
-}
 
 # Crea el SG desde cero
 create_sg() {
