@@ -1,7 +1,4 @@
 #  ITBA - Proyecto Integrador: Plan de Migración a AWS (Plataforma Hudson)
-
-Repositorio del proyecto final ITBA**.
-
 **Integrantes: Agustin Fernandez**
 
 ---
