@@ -24,7 +24,7 @@ services:
     image: localstack/localstack:3
     container_name: itba-fp-localstack
     environment:
-      SERVICES: s3,iam,ec2,secretsmanager,cloudfront,rds,ecs
+      SERVICES: s3,iam,ec2,secretsmanager,cloudfront,rds,ecs,logs
       AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION:-us-east-1}
     ports:
       - "4566:4566"
