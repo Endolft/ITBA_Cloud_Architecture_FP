@@ -27,12 +27,8 @@ La infraestructura como código (IaC) está completamente automatizada mediante 
 
 ### Pasos para Ejecutar
 
-1. **Clonar el repositorio:**
+1. **Clonar el repositorio**
 
-```bash
-git clone <URL_DE_TU_REPOSITORIO>
-cd ITBA_Cloud_Architecture_FP
-```
 
 2. Levantar los contenedores
 ```bash
