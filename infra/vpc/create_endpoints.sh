@@ -15,7 +15,7 @@ fi
 
 # Recuperar ID de la Tabla de Rutas
 RT_ID=$(aws ec2 describe-route-tables \
-  --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=taller-public-rt" \
+  --filters "Name=vpc-id,Values=$VPC_ID" "Name=tag:Name,Values=taller-private-rt" \
   --region "$REGION" \
   --endpoint-url "$ENDPOINT" \
   --query 'RouteTables[0].RouteTableId' \

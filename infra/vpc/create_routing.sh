@@ -7,7 +7,7 @@ source "$DIR/../config.sh"
 
 
 IGW_NAME="taller-igw"
-RT_NAME="taller-public-rt"
+RT_NAME="taller-private-rt"
 
 echo "Configurando la capa de enrutamiento pública..."
 

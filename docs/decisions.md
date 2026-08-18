@@ -162,3 +162,17 @@ Contexto: evitar el costo y la sobrecarga de mantener un servidor de cómputo (E
 Tradeoff: exige configurar políticas de CORS explícitas en el bucket de destino y delegar la firma de URLs temporales al Backend, a cambio de desacoplar por completo la transferencia de datos.
 
 Resultado: arquitectura Serverless de distribución estática de costo casi nulo, escalable a millones de peticiones y alineada con las mejores prácticas de AWS para manejo de blobs.
+
+---
+
+### 012 - Adaptación dinámica de red y CORS para Cloud IDEs (GitHub Codespaces)
+
+Decision: implementar inyección dinámica de URLs en el Frontend (JavaScript) para soportar la ejecución remota en GitHub Codespaces sin harcodear direcciones, y requerir la exposición pública manual de puertos.
+
+Contexto: los entornos de desarrollo en la nube (como Codespaces) exponen los contenedores mediante URLs proxy seguras. Las referencias a `localhost` o la red interna de Docker (`localstack:4566`) fallan al ejecutarse en el navegador físico del usuario. Además, las políticas estrictas de GitHub bloquean peticiones CORS si los puertos no son explícitamente públicos.
+
+Alternativas: requerir Docker Desktop local obligatorio (excluye a usuarios con hardware limitado) o forzar al desarrollador a modificar el código HTML manualmente en cada sesión para inyectar su URL de Codespace.
+
+Tradeoff: añade complejidad al código JavaScript del Frontend (detección de entorno en runtime mediante `window.location.origin` y expresiones regulares) y depende de un paso manual del desarrollador (cambiar puertos a Public), pero garantiza que el mismo código funcione en local y en la nube sin modificaciones.
+
+Resultado: frontend resiliente, portable y plug-and-play, capaz de inferir su propio entorno de red para consumir el Backend y el bucket S3 simulado correctamente.
