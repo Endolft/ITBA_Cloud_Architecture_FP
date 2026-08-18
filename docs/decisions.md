@@ -70,7 +70,9 @@ Tradeoff: en el entorno local se omite el `docker push` hacia el endpoint de Loc
 
 Resultado: flujo de desarrollo local gratuito, rápido y resiliente, con scripts de IaC 100% portables a entornos reales de AWS.
 
-005 - Manejo de Application Load Balancer (AWS ALB vs Local)
+---
+
+### 005 - Manejo de Application Load Balancer (AWS ALB vs Local)
 Decision: emular el Application Load Balancer (ALB) en el entorno local utilizando Caddy Server (alb-mock) en lugar de elbv2 de LocalStack.
 
 Contexto: el servicio ELBv2 de AWS requiere la versión Pro de LocalStack. Se necesita un punto de entrada público en el puerto 80 que redirija el tráfico hacia la aplicación sin requerir licencias pagas.
@@ -81,7 +83,9 @@ Tradeoff: se suma un contenedor liviano (caddy:2-alpine) al compose.yaml, pero s
 
 Resultado: el script create_alb.sh omite los comandos de AWS al detectar el entorno local, dejando el ruteo público a cargo de Caddy. En la nube real, creará el ALB de AWS.
 
-006 - Estrategia de Aislamiento de Red y Ejecución de ECS
+---
+
+### 006 - Estrategia de Aislamiento de Red y Ejecución de ECS
 Decision: ejecutar el contenedor de la aplicación aislado en la red interna de Docker sin exponer el puerto 8000 a la máquina host (-p), delegando el acceso exclusivamente a Caddy.
 
 Contexto: en AWS Fargate, las tareas corren en subredes privadas con el modo de red awsvpc y solo son accesibles a través del Target Group del ALB. Exponer el puerto de la aplicación al host rompería el modelo de seguridad Zero-Trust en la simulación local.
@@ -91,3 +95,31 @@ Alternativas: exponer el puerto 8000 al host mediante -p 8000:8000 (más simple,
 Tradeoff: la aplicación solo es accesible vía http://localhost (puerto 80 de Caddy), exigiendo que el servicio de ruteo esté levantado para realizar pruebas.
 
 Resultado: réplica 1:1 de la arquitectura de seguridad de AWS en local (Usuario ➔ Caddy:80 ➔ backend:8000).
+
+---
+
+### 007 - Gestión centralizada y dinámica de secretos con AWS Secrets Manager
+
+Decision: En entorno local, la contraseña se sincroniza dinámicamente con la variable POSTGRES_PASSWORD del .env (o postgres por defecto) para coincidir con el contenedor Docker local. En AWS real, se genera una contraseña aleatoria de 16 caracteres mediante get-random-password y, posteriormente, el script create_rds.sh inyecta las claves host (endpoint de la RDS) y dbname para cumplir con la especificación del sistema.
+
+Contexto: evitar credenciales fijas (hardcoded) en scripts, repositorios de Git o variables de entorno expuestas, garantizando el cumplimiento de buenas prácticas de seguridad.
+
+Alternativas: guardar contraseñas en archivos `.env` (alto riesgo de fuga al repositorio) o pasarlas por variables fijas en el orquestador.
+
+Tradeoff: exige consultar el servicio de secretos en tiempo de ejecución e inyectar políticas de permisos IAM (`secretsmanager:GetSecretValue`) en la tarea de ECS.
+
+Resultado: bóveda de secretos desacoplada, segura y compatible con desarrollo local y producción en AWS real.
+
+---
+
+### 008 - Aislamiento de la capa de datos mediante RDS PostgreSQL y DB Subnet Groups
+
+Decision: desplegar la base de datos PostgreSQL en subredes privadas asociadas a un DB Subnet Group (`taller-db-subnet-group`) con acceso público bloqueado (`--no-publicly-accessible`). En desarrollo local se utiliza el contenedor nativo de Docker (`postgres:16`).
+
+Contexto: impedir que la base de datos quede expuesta a Internet, forzando que solo el Security Group del backend (ECS) pueda conectarse en el puerto 5432.
+
+Alternativas: desplegar RDS en subredes públicas (inaceptable a nivel seguridad) o emular el servicio en LocalStack Pro (descartado por costos de licencia).
+
+Tradeoff: dificulta la conexión directa desde herramientas GUI locales sin un túnel de red o bastión, pero garantiza un esquema Zero-Trust.
+
+Resultado: capa de datos aislada, segura e idempotente tanto en desarrollo local como en AWS real.

@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -e
 
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -10,88 +9,87 @@ TG_NAME="taller-tg"
 
 echo "Configurando Application Load Balancer (ALB)..."
 
-# --- DETECCIÓN DE ENTORNO LOCAL ---
+# Check if we're using LocalStack
 if [[ "$ENDPOINT" == *"localhost:4566"* ]] || [[ "$ENDPOINT" == *"127.0.0.1:4566"* ]]; then
-    echo "⚠️  ALB (ELBv2) no está disponible en LocalStack Community."
-    echo "Para desarrollo local, Caddy (alb-mock) maneja el ruteo en el puerto 80."
-    echo "Para usar ALB real, despliega en AWS con credenciales reales."
-    echo "========================================="
-    echo "✅ Módulo ALB (Simulado) procesado correctamente."
-    echo "========================================="
+    echo "⚠️ ALB (ELBv2) con soporte limitado en LocalStack Community Edition."
+    echo "Las funcionalidades básicas de ALB pueden no estar disponibles."
+    echo "Para desarrollo local, usa directamente los servicios de ECS o un proxy como Caddy."
     exit 0
 fi
-# ----------------------------------
 
 echo "Usando ALB en AWS..."
 
-# 1. Recuperar IDs de recursos base (VPC, Subredes Públicas y SG)
+# 1. Recuperar IDs de recursos base.
 VPC_ID=$(get_vpc_id)
 SUBNET_1=$(get_subnet_id "taller-public-subnet-1")
 SUBNET_2=$(get_subnet_id "taller-public-subnet-2")
 ALB_SG=$(get_sg_id "taller-alb-sg")
 
-if [ -z "$VPC_ID" ] || [ "$VPC_ID" == "None" ]; then
-    echo "❌ ERROR: No se encontró la VPC. Ejecutá la red primero."
+# Validación de recursos base
+if [ -z "$VPC_ID" ] || [ "$VPC_ID" == "None" ] || [ -z "$SUBNET_1" ] || [ -z "$ALB_SG" ]; then
+    echo "❌ ERROR: Faltan recursos base (VPC, Subredes públicas o Security Group)."
+    echo "Ejecutá el script de VPC/Red primero."
     exit 1
 fi
 
-# 2. Obtener o Crear el Target Group (Apunta al puerto 8000 de ECS)
-TG_ARN=$(aws elbv2 describe-target-groups --names "$TG_NAME" --endpoint-url $ENDPOINT --query 'TargetGroups[0].TargetGroupArn' --output text 2>/dev/null || echo "None")
+# 2. Obtener o Crear el Target Group.
+TG_ARN=$(aws elbv2 describe-target-groups --names "$TG_NAME" --region "$REGION" --endpoint-url "$ENDPOINT" --query 'TargetGroups[0].TargetGroupArn' --output text 2>/dev/null || echo "None")
 
 if [ "$TG_ARN" == "None" ] || [ -z "$TG_ARN" ]; then
-    echo "🎯 Creando Target Group '$TG_NAME'..."
+    echo "Creando Target Group '$TG_NAME'..."
     TG_ARN=$(aws elbv2 create-target-group \
       --name "$TG_NAME" \
       --protocol HTTP \
       --port 8000 \
-      --vpc-id $VPC_ID \
+      --vpc-id "$VPC_ID" \
+      --target-type ip \
       --health-check-path "/" \
-      --region $REGION \
-      --endpoint-url $ENDPOINT \
+      --region "$REGION" \
+      --endpoint-url "$ENDPOINT" \
       --query 'TargetGroups[0].TargetGroupArn' --output text)
 else
     echo "Target Group ya existe: $TG_ARN"
 fi
 
 # 3. Obtener o Crear el Application Load Balancer
-ALB_ARN=$(aws elbv2 describe-load-balancers --names "$ALB_NAME" --endpoint-url $ENDPOINT --query 'LoadBalancers[0].LoadBalancerArn' --output text 2>/dev/null || echo "None")
+ALB_ARN=$(aws elbv2 describe-load-balancers --names "$ALB_NAME" --region "$REGION" --endpoint-url "$ENDPOINT" --query 'LoadBalancers[0].LoadBalancerArn' --output text 2>/dev/null || echo "None")
 
 if [ "$ALB_ARN" == "None" ] || [ -z "$ALB_ARN" ]; then
     echo "Creando Load Balancer '$ALB_NAME' (Internet-facing)..."
     ALB_ARN=$(aws elbv2 create-load-balancer \
       --name "$ALB_NAME" \
-      --subnets $SUBNET_1 $SUBNET_2 \
-      --security-groups $ALB_SG \
+      --subnets "$SUBNET_1" "$SUBNET_2" \
+      --security-groups "$ALB_SG" \
       --scheme internet-facing \
-      --region $REGION \
-      --endpoint-url $ENDPOINT \
+      --region "$REGION" \
+      --endpoint-url "$ENDPOINT" \
       --query 'LoadBalancers[0].LoadBalancerArn' --output text)
 else
     echo "Load Balancer ya existe: $ALB_ARN"
 fi
 
-# 4. Obtener o Crear el Listener (Escucha en puerto 80)
-LISTENER_ARN=$(aws elbv2 describe-listeners --load-balancer-arn $ALB_ARN --endpoint-url $ENDPOINT --query 'Listeners[?Port==`80`].ListenerArn' --output text 2>/dev/null || echo "None")
+# 4. Obtener o Crear el Listener (puerto 80)
+LISTENER_ARN=$(aws elbv2 describe-listeners --load-balancer-arn "$ALB_ARN" --region "$REGION" --endpoint-url "$ENDPOINT" --query 'Listeners[?Port==`80`].ListenerArn' --output text 2>/dev/null || echo "None")
 
 if [ "$LISTENER_ARN" == "None" ] || [ -z "$LISTENER_ARN" ]; then
     echo "Configurando Listener en puerto 80..."
     LISTENER_ARN=$(aws elbv2 create-listener \
-      --load-balancer-arn $ALB_ARN \
+      --load-balancer-arn "$ALB_ARN" \
       --protocol HTTP \
       --port 80 \
-      --default-actions Type=forward,TargetGroupArn=$TG_ARN \
-      --region $REGION \
-      --endpoint-url $ENDPOINT \
+      --default-actions Type=forward,TargetGroupArn="$TG_ARN" \
+      --region "$REGION" \
+      --endpoint-url "$ENDPOINT" \
       --query 'Listeners[0].ListenerArn' --output text)
-    echo "✅ Listener creado."
+    echo "Listener creado."
 else
     echo "Listener ya existe."
 fi
 
 # Obtener URL del Load Balancer
-ALB_DNS=$(aws elbv2 describe-load-balancers --load-balancer-arns $ALB_ARN --endpoint-url $ENDPOINT --query 'LoadBalancers[0].DNSName' --output text)
+ALB_DNS=$(aws elbv2 describe-load-balancers --load-balancer-arns "$ALB_ARN" --region "$REGION" --endpoint-url "$ENDPOINT" --query 'LoadBalancers[0].DNSName' --output text)
 
 echo "========================================="
 echo "✅ ALB Configurado Exitosamente"
-echo "👉 DNS del Balanceador: http://$ALB_DNS"
+echo "DNS del Balanceador: http://$ALB_DNS"
 echo "========================================="

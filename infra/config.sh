@@ -1,9 +1,18 @@
+CONFIG_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+ENV_FILE="$CONFIG_DIR/../.env"
+if [ -f "$ENV_FILE" ]; then
+    set -o allexport
+    source "$ENV_FILE"
+    set +o allexport
+fi
+
 export AWS_ACCESS_KEY_ID="test"
 export AWS_SECRET_ACCESS_KEY="test"
 export AWS_DEFAULT_REGION="us-east-1"
-
+export DB_SECRET_NAME="taller/db/credentials"
 export REGION="us-east-1"
-export ENDPOINT="http://localhost:4566"
+export ENDPOINT="${ENDPOINT:-http://localhost:4566}"
 
 export VPC_NAME="taller-vpc"
 export REPO_NAME="taller-backend"
