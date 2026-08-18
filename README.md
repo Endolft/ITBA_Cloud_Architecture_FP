@@ -78,6 +78,7 @@ Pasos obligatorios antes de probar la aplicación:
   - `rds/` — DB Subnet Groups e instancia PostgreSQL 16
   - `ecr/` — Repositorio de imágenes de contenedores
   - `s3/` — Buckets estáticos, storage de fotos, CORS y Frontend
+  - `s3/create_cloudfront.sh` — Distribución CloudFront con origen S3 privado y OAC
   - `iam/` — Roles y Políticas de Menor Privilegio (ECS Task/Execution)
   - `alb/` — Application Load Balancer y Target Groups
   - `ecs/` — Tareas de Fargate y Auto-Scaling

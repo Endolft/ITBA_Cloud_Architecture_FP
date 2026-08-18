@@ -1,26 +1,19 @@
-# Credits & Data Sources
+# Credits & Tools
 
-## Olist Brazilian E-Commerce Dataset
+Este repositorio se construyó utilizando las siguientes herramientas y proyectos:
 
-- **Source:** https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce
-- **Provider:** Olist (https://olist.com)
-- **License:** Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
-  https://creativecommons.org/licenses/by-nc-sa/4.0/
-- **Use in this repo:** Sample of 3,000 orders (Jan–Feb 2018) used for educational labs.
-  Full dataset not included. Run `scripts/download_data.py` to download it.
-
-## GitHub Archive
-
-- **Source:** https://www.gharchive.org
-- **Provider:** Ilya Grigorik / GitHub Archive project
-- **License:** Creative Commons Attribution 4.0 International (CC BY 4.0)
-  https://creativecommons.org/licenses/by/4.0/
-- **GitHub Event data license:** https://docs.github.com/en/site-policy/github-terms/github-terms-of-service
-- **Use in this repo:** Sample of 2,000 public events (Jan 15 2024, 14:00 UTC) used for
-  streaming and queue labs. Run `scripts/download_data.py` to download more data.
-
-## Notes
-
-All data in `data/raw/` is used strictly for educational, non-commercial purposes.
-No personally identifiable information (PII) is included beyond what is already
-anonymized in the original public datasets.
+- **Amazon Web Services (AWS):** servicios de referencia de la arquitectura,
+  incluyendo VPC, ECS/Fargate, ECR, RDS, S3, CloudFront, IAM, Secrets Manager,
+  CloudWatch y Application Load Balancer.
+  https://aws.amazon.com/
+- **LocalStack:** emulación local de servicios de AWS para desarrollo y pruebas.
+  https://www.localstack.cloud/
+- **Docker y Docker Compose:** ejecución y orquestación del entorno local.
+  https://www.docker.com/
+- **PostgreSQL:** base de datos utilizada en el entorno local y como motor de RDS.
+  https://www.postgresql.org/
+- **Caddy:** reverse proxy utilizado como mock local del Application Load Balancer.
+  https://caddyserver.com/
+- **Python, Boto3 y psycopg2:** implementación del backend mock e integración con
+  AWS y PostgreSQL.
+  https://www.python.org/ · https://boto3.amazonaws.com/ · https://www.psycopg.org/
