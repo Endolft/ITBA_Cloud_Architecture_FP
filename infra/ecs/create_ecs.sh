@@ -7,9 +7,9 @@ source "$DIR/../config.sh"
 CLUSTER_NAME="taller-cluster"
 TASK_DEF_FAMILY="taller-task"
 SERVICE_NAME="taller-service"
-IMAGE_NAME="${REPO_NAME:-taller-backend}:latest"
+IMAGE_NAME="${REPO_NAME:-itba_cloud_architecture_fp-taller-backend}:latest"
 
-echo "🚀 Configurando Amazon ECS..."
+echo "Configurando Amazon ECS..."
 
 # --- DETECCIÓN DE ENTORNO LOCAL ---
 if [[ "$ENDPOINT" == *"localhost:4566"* ]] || [[ "$ENDPOINT" == *"127.0.0.1:4566"* ]]; then
@@ -32,7 +32,7 @@ if [[ "$ENDPOINT" == *"localhost:4566"* ]] || [[ "$ENDPOINT" == *"127.0.0.1:4566
     docker rm -f taller-backend-local 2>/dev/null || true
 
     # 4. Levantar contenedor inyectando variables (simulación de roles y secrets)
-    echo "📦 Levantando contenedor Docker 'taller-backend-local' en la red '$NETWORK'..."
+    echo "Levantando contenedor Docker 'taller-backend-local' en la red '$NETWORK'..."
     docker run -d \
       --name taller-backend-local \
       --network "$NETWORK" \

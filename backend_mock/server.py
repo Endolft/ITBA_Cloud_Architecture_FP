@@ -41,7 +41,6 @@ class RequestHandler(BaseHTTPRequestHandler):
                     Params={
                         'Bucket': S3_BUCKET,
                         'Key': f"fotos/{filename}",
-                        'ContentType': 'image/*'
                     },
                     ExpiresIn=3600
                 )

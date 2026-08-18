@@ -153,7 +153,7 @@ Resultado: aislamiento total de permisos entre la capa de orquestación de AWS y
 
 ---
 
-### 011 - Despliegue de Frontend Estático en S3 con CORS y Subida Directa (Presigned URLs)
+### 010 - Despliegue de Frontend Estático en S3 con CORS y Subida Directa (Presigned URLs)
 
 Decision: alojar la interfaz de usuario como sitio web estático en un bucket dedicado de Amazon S3 (`taller-frontend-static`), configurando reglas de CORS en el bucket de almacenamiento (`taller-backend-storage`) para habilitar la subida directa de archivos desde el navegador mediante Presigned URLs.
 
@@ -165,7 +165,7 @@ Resultado: arquitectura Serverless de distribución estática de costo casi nulo
 
 ---
 
-### 012 - Adaptación dinámica de red y CORS para Cloud IDEs (GitHub Codespaces)
+### 011 - Adaptación dinámica de red y CORS para Cloud IDEs (GitHub Codespaces)
 
 Decision: implementar inyección dinámica de URLs en el Frontend (JavaScript) para soportar la ejecución remota en GitHub Codespaces sin harcodear direcciones, y requerir la exposición pública manual de puertos.
 

@@ -14,7 +14,7 @@ echo "Configurando Amazon RDS (PostgreSQL)..."
 # --- DETECCIÓN DE ENTORNO LOCAL ---
 if [[ "$ENDPOINT" == *"localhost:4566"* ]] || [[ "$ENDPOINT" == *"127.0.0.1:4566"* ]]; then
     echo "⚠️ Despliegue local detectado."
-    echo "💡 La base de datos PostgreSQL ya está siendo provista por Docker (puerto 5432)."
+    echo "La base de datos PostgreSQL ya está siendo provista por Docker (puerto 5432)."
     echo "========================================="
     echo "✅ Módulo RDS (Simulado) procesado correctamente."
     echo "========================================="

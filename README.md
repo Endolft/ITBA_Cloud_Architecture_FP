@@ -1,25 +1,25 @@
 #  ITBA - Proyecto Integrador: Plan de Migración a AWS (Plataforma Hudson)
 
-Repositorio oficial del proyecto final para la materia **Cloud Computing** de la **Escuela de Innovación del ITBA**.
+Repositorio del proyecto final ITBA**.
 
 **Integrantes: Agustin Fernandez**
 
 ---
 
-## 📌 Visión General del Proyecto
+##  Visión General del Proyecto
 
 **Hudson** es una plataforma integral B2B/B2C diseñada para la gestión del ecosistema automotor (talleres, propietarios y venta de autopartes). Este proyecto diseña y ejecuta la migración de la infraestructura de Hudson desde un monolito local (*on-premise*) hacia una **arquitectura en la nube de AWS de 3 capas (3-tier)**, serverless, elástica y de alta disponibilidad.
 
-### 🏛️ Aspectos Clave de la Arquitectura
+### Aspectos Clave de la Arquitectura
 - **Frontend Serverless:** React SPA alojado en **Amazon S3** (`taller-frontend-static`) y distribuido globalmente mediante **Amazon CloudFront CDN**.
 - **Backend Contenedorizado:** API en Python/Docker orquestada con **Amazon ECS + AWS Fargate** en subredes privadas, expuesta a través de un **Application Load Balancer (ALB)**.
 - **Base de Datos Relacional Aislada:** **Amazon RDS PostgreSQL 16 Multi-AZ** (Principal en `AZ-1a` y Standby en `AZ-1b`) con una **Read Replica** dedicada para consultas analíticas de administración.
 - **Almacenamiento Inteligente de Fotos:** Subida directa desde el navegador/App móvil a **Amazon S3** (`taller-backend-storage`) mediante **Presigned URLs**, reduciendo la carga del backend y el ancho de banda del ALB.
-- **Seguridad Zero-Trust:** Encadenamiento de tráfico por referencias entre Security Groups (`ALB ➔ ECS ➔ RDS`), secretos cifrados en **AWS Secrets Manager** y comunicación privada a S3 vía **VPC Gateway Endpoint**.
+- **Seguridad Zero-Trust:** Encadenamiento de tráfico por referencias entre Security Groups (`ALB → ECS → RDS`), secretos cifrados en **AWS Secrets Manager** y comunicación privada a S3 vía **VPC Gateway Endpoint**.
 
 ---
 
-## 🚀 Inicio Rápido (Despliegue Local e IaC)
+##  Inicio Rápido (Despliegue Local e IaC)
 
 La infraestructura como código (IaC) está completamente automatizada mediante scripts idempotentes en Bash y un entorno emulado con **Docker Compose + LocalStack + Caddy**.
 
@@ -37,13 +37,18 @@ git clone <URL_DE_TU_REPOSITORIO>
 cd ITBA_Cloud_Architecture_FP
 ```
 
-2. **Desplegar la infraestructura completa:**
+2. levantar los containers
+```bash
+docker compose up -d
+```
+
+3. **Desplegar la infraestructura completa:**
 
 ```bash
 ./scripts/deploy_all.sh
 ```
 
-3. **Verificar la salud de los servicios:**
+4. **Verificar la salud de los servicios:**
 
 ```bash
 ./scripts/check.sh
@@ -53,19 +58,19 @@ Si estás evaluando este proyecto dentro de GitHub Codespaces, la plataforma blo
 
 Pasos obligatorios antes de probar la aplicación:
 
-1. Abrí la pestaña Ports (Puertos) en la terminal inferior de VS Code.
-2. Buscá los puertos 80 (Backend / ALB Mock) y 4566 (LocalStack / S3 Mock).
-3. Hacé clic derecho sobre la columna Visibility (que dirá Private) y cambialos a Public.
-4. Verificá que ambos puertos muestren el ícono del candado abierto.
-5. Recargá la página del Frontend e iniciá las pruebas de subida de imágenes.
+1. Abre la pestaña Ports (Puertos) en la terminal inferior de VS Code.
+2. Busca los puertos 80 (Backend / ALB Mock) y 4566 (LocalStack / S3 Mock).
+3. Haz clic derecho sobre la columna Visibility (que dirá Private) y cámbialos a Public.
+4. Verifica que ambos puertos muestren el ícono del candado abierto.
+5. Recarga la página del Frontend e inicia las pruebas de subida de imágenes.
 
 ### Estructura del Repositorio
 
 - **docs/** — Documentación y reportes
   - `architecture.md` — Informe de Arquitectura As-Is/To-Be y Objetivos SMART
   - `decisions.md` — Registro de 12 Decisiones de Arquitectura (ADR)
-  - `gantt_migration_plan.md` — Plan de Migración a 6 semanas y Matriz de Riesgos
-  - `costs_calculator.md` — Estimación de Costos Mensuales (AWS Calculator)
+  - `plan.md` — Plan de Migración a 6 semanas y Matriz de Riesgos
+  - `costs_calculator.pdf` — Estimación de Costos Mensuales (AWS Calculator)
 
 - **infra/** — Scripts de infraestructura como código (IaC)
   - `vpc/` — Red Multi-AZ, Subredes y VPC Gateway Endpoint

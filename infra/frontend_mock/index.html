@@ -229,7 +229,6 @@
             return 'http://localhost:80/api/upload-url';
         }
 
-
         async function uploadImage() {
             const fileInput = document.getElementById('fileInput');
             if (fileInput.files.length === 0) {
@@ -238,35 +237,35 @@
             }
 
             const file = fileInput.files[0];
-            log(`Iniciando flujo para: ${file.name}`);
+            // Detectar tipo MIME real (ej: image/jpeg, image/png, image/webp)
+            const fileType = file.type || 'application/octet-stream';
+
+            log(`Iniciando flujo para: ${file.name} (${fileType})`);
 
             try {
-                // 1. Pedir la Presigned URL al backend
-                const apiUrl = `${getBackendUrl()}?filename=${encodeURIComponent(file.name)}`;
+                // 1. Pedir la Presigned URL enviando el filename Y el content_type real
+                const apiUrl = `${getBackendUrl()}?filename=${encodeURIComponent(file.name)}&content_type=${encodeURIComponent(fileType)}`;
                 log(`1. Solicitando Presigned URL a: ${apiUrl}`);
                 
                 const res = await fetch(apiUrl);
-                
                 if (!res.ok) throw new Error(`Fallo al obtener respuesta del backend (Status: ${res.status})`);
                 
                 let { url } = await res.json();
                 
-                // --- PARCHE PARA CODESPACES ---
-                // Cambiamos el "localstack" interno por la URL pública actual del navegador
+                // Parche para GitHub Codespaces
                 if (url.includes('http://localstack:4566')) {
                     url = url.replace('http://localstack:4566', window.location.origin);
                 }
-                // ------------------------------
 
                 log('✅ Firma generada correctamente.');
 
-                // 2. Subir directamente el archivo a S3
+                // 2. Subir a S3 usando EXACTAMENTE el mismo Content-Type
                 log('2. Subiendo imagen a S3...');
                 const uploadRes = await fetch(url, {
                     method: 'PUT',
                     body: file,
                     headers: {
-                        'Content-Type': file.type
+                        'Content-Type': fileType
                     }
                 });
 
@@ -278,7 +277,6 @@
                 log(`❌ Error: ${err.message}`);
             }
         }
-       
     </script>
 </body>
 </html>
