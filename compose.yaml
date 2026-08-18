@@ -37,6 +37,27 @@ services:
       timeout: 5s
       retries: 10
 
+  taller-backend-local:
+    build: 
+      context: .
+      dockerfile: backend_mock/Dockerfile
+    container_name: taller-backend
+    environment:
+      - AWS_ENDPOINT_URL=${AWS_ENDPOINT_URL:-http://localstack:4566}
+      - AWS_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-test}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-test}
+      - S3_BACKEND_BUCKET=${S3_BACKEND_BUCKET:-taller-backend-storage}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB:-workshop_db}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+    ports:
+      - "8000:8000"
+    depends_on:
+      - localstack
+
   alb-mock:
     image: caddy:2-alpine
     container_name: itba-fp-alb-mock
@@ -45,7 +66,7 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - localstack
+      - taller-backend-local
 
 volumes:
   postgres-data:

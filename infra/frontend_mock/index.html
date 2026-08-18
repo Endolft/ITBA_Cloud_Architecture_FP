@@ -161,12 +161,11 @@
 <body>
 
     <header>
-        <h1>Simulación Frontend</h1>
+        <h1>Simulación Frontend 2</h1>
         <p>Frontend S3 ➔ ALB / ECS ➔ S3 Direct Upload (Presigned URL)</p>
     </header>
 
     <div class="container">
-        
         <!-- Status Card -->
         <div class="card">
             <div class="card-title">
@@ -216,6 +215,21 @@
             }
         }
 
+        // Generador dinámico de URL basado en el entorno
+        function getBackendUrl() {
+            const origin = window.location.origin;
+            
+            // Si detecta que estás corriendo en GitHub Codespaces
+            if (origin.includes('.github.dev')) {
+                // Toma la URL actual (ej. terminada en -4566 o -3000) y la redirige al puerto 80
+                return origin.replace(/-\d+\.app\.github\.dev/, '-80.app.github.dev') + '/api/upload-url';
+            }
+            
+            // Fallback para ejecución local normal
+            return 'http://localhost:80/api/upload-url';
+        }
+
+
         async function uploadImage() {
             const fileInput = document.getElementById('fileInput');
             if (fileInput.files.length === 0) {
@@ -227,18 +241,44 @@
             log(`Iniciando flujo para: ${file.name}`);
 
             try {
-                // 1. Pedir la Presigned URL al backend (ALB -> ECS)
-                log('1. Solicitando Presigned URL al Backend...');
-                /* 
-                   Cuando esté la API lista en backend:
-                   const res = await fetch('/api/upload-url?filename=' + encodeURIComponent(file.name));
-                   const { url } = await res.json();
-                */
-                log('✅ Flujo de interfaz preparado para conectar con ECS.');
+                // 1. Pedir la Presigned URL al backend
+                const apiUrl = `${getBackendUrl()}?filename=${encodeURIComponent(file.name)}`;
+                log(`1. Solicitando Presigned URL a: ${apiUrl}`);
+                
+                const res = await fetch(apiUrl);
+                
+                if (!res.ok) throw new Error(`Fallo al obtener respuesta del backend (Status: ${res.status})`);
+                
+                let { url } = await res.json();
+                
+                // --- PARCHE PARA CODESPACES ---
+                // Cambiamos el "localstack" interno por la URL pública actual del navegador
+                if (url.includes('http://localstack:4566')) {
+                    url = url.replace('http://localstack:4566', window.location.origin);
+                }
+                // ------------------------------
+
+                log('✅ Firma generada correctamente.');
+
+                // 2. Subir directamente el archivo a S3
+                log('2. Subiendo imagen a S3...');
+                const uploadRes = await fetch(url, {
+                    method: 'PUT',
+                    body: file,
+                    headers: {
+                        'Content-Type': file.type
+                    }
+                });
+
+                if (!uploadRes.ok) throw new Error(`Fallo al subir a S3 (Status: ${uploadRes.status})`);
+                
+                log('🚀 ¡Éxito! Imagen subida correctamente a S3.');
+                
             } catch (err) {
                 log(`❌ Error: ${err.message}`);
             }
         }
+       
     </script>
 </body>
 </html>

@@ -7,7 +7,7 @@ source "$DIR/../config.sh"
 IMAGE_TAG="latest"
 IMAGE_NAME="$REPO_NAME:$IMAGE_TAG"
 
-echo "🐳 Construyendo la imagen Docker de prueba (Mock)..."
+echo "Construyendo la imagen Docker de prueba (Mock)..."
 docker build -t "$IMAGE_NAME" -f "$DIR/Dockerfile.mock" "$DIR"
 
 echo "Imagen de prueba construida exitosamente"
