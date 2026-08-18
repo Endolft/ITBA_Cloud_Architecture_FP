@@ -16,7 +16,7 @@ if [[ "$ENDPOINT" == *"localhost:4566"* ]] || [[ "$ENDPOINT" == *"127.0.0.1:4566
     echo "⚠️ Entorno local detectado. Configurando mock integrado con LocalStack y Postgres..."
 
     # 1. Recuperar la contraseña guardada en Secrets Manager (LocalStack)
-    echo "🔑 Recuperando secreto desde LocalStack..."
+    echo "Recuperando secreto desde LocalStack..."
     DB_PASS=$(aws secretsmanager get-secret-value \
       --secret-id "$DB_SECRET_NAME" \
       --endpoint-url "$ENDPOINT" \
@@ -49,7 +49,7 @@ if [[ "$ENDPOINT" == *"localhost:4566"* ]] || [[ "$ENDPOINT" == *"127.0.0.1:4566
       "$IMAGE_NAME" > /dev/null
 
     echo "========================================="
-    echo "✅ ECS (Simulado): Contenedor integrado y ejecutándose correctamente"
+    echo "✅ ECS (Simulado): Contenedor integrado y en ejecución correctamente"
     echo "========================================="
     exit 0
 fi
@@ -70,7 +70,7 @@ if [ -z "$PRIVATE_SUBNET_1" ] || [ "$PRIVATE_SUBNET_1" == "None" ] || [ "$TG_ARN
 fi
 
 # 2. Registrar Task Definition (Con IAM Roles, Secrets y Logs)
-echo "📄 Registrando Task Definition '$TASK_DEF_FAMILY'..."
+echo "Registrando Task Definition '$TASK_DEF_FAMILY'..."
 CONTAINER_DEF=$(cat <<EOF
 [
   {
@@ -116,10 +116,10 @@ aws ecs register-task-definition \
   --endpoint-url "$ENDPOINT" > /dev/null
 
 # 3. Crear Cluster y Servicio de ECS conectado al ALB
-echo "🏗️ Creando Cluster ECS '$CLUSTER_NAME'..."
+echo "Creando Cluster ECS '$CLUSTER_NAME'..."
 aws ecs create-cluster --cluster-name "$CLUSTER_NAME" --region "$REGION" --endpoint-url "$ENDPOINT" > /dev/null
 
-echo "🚀 Creando o Actualizando Servicio ECS '$SERVICE_NAME'..."
+echo "Creando o Actualizando Servicio ECS '$SERVICE_NAME'..."
 aws ecs create-service \
   --cluster "$CLUSTER_NAME" \
   --service-name "$SERVICE_NAME" \
@@ -129,7 +129,7 @@ aws ecs create-service \
   --network-configuration "awsvpcConfiguration={subnets=[$PRIVATE_SUBNET_1,$PRIVATE_SUBNET_2],securityGroups=[$ECS_SG],assignPublicIp=DISABLED}" \
   --load-balancers "targetGroupArn=$TG_ARN,containerName=$REPO_NAME,containerPort=8000" \
   --region "$REGION" \
-  --endpoint-url "$ENDPOINT" > /dev/null || echo "ℹ️ El servicio ECS ya existía o se está actualizando."
+  --endpoint-url "$ENDPOINT" > /dev/null || echo "El servicio ECS ya existía o se está actualizando."
 
 echo "========================================="
 echo "✅ Amazon ECS configurado exitosamente en AWS"

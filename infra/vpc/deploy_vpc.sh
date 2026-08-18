@@ -29,5 +29,5 @@ echo "--- PASO 6/6: Configuración de NAT Gateways ---"
 "$DIR/create_nat_gateways.sh"
 
 echo "========================"
-echo "Red desplagada con exito"
+echo "Red desplegada con éxito"
 echo "========================"

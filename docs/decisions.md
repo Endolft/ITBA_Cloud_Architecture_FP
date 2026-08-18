@@ -67,9 +67,9 @@ Resultado: cadena de confianza estricta (`Internet ➔ ALB:80 ➔ ECS:8000 ➔ R
 
 ### 004 - Estrategia de Registro de Contenedores (ECR en AWS vs. Daemon Local en LocalStack)
 
-Decision: En AWS real usamos ECR (taller-backend), pero para correrlo localmente con LocalStack usamos directamente el Docker de la máquina (taller-backend:latest).
+Decision: En AWS real se utiliza ECR (taller-backend), pero para ejecutarlo localmente con LocalStack se utiliza directamente Docker en la máquina del desarrollador (taller-backend:latest).
 
-Contexto: LocalStack ahora pide la versión Pro (de pago) para emular ECR. Para no pagar ni agregar complejidad, hicimos que los scripts sean inteligentes: si detectan que corren en local, construyen la imagen en Docker y siguen de largo; si corren en AWS real, crean el repositorio ECR normalmente.
+Contexto: LocalStack requiere actualmente la versión Pro (de pago) para emular ECR. Para evitar costos y complejidad adicional, los scripts detectan el entorno: en local construyen la imagen en Docker y continúan; en AWS real crean el repositorio ECR normalmente.
 
 Alternativas:
 
@@ -167,7 +167,7 @@ Resultado: arquitectura Serverless de distribución estática de costo casi nulo
 
 ### 011 - Adaptación dinámica de red y CORS para Cloud IDEs (GitHub Codespaces)
 
-Decision: implementar inyección dinámica de URLs en el Frontend (JavaScript) para soportar la ejecución remota en GitHub Codespaces sin harcodear direcciones, y requerir la exposición pública manual de puertos.
+Decision: implementar inyección dinámica de URLs en el Frontend (JavaScript) para soportar la ejecución remota en GitHub Codespaces sin codificar direcciones de forma fija, y requerir la exposición pública manual de puertos.
 
 Contexto: los entornos de desarrollo en la nube (como Codespaces) exponen los contenedores mediante URLs proxy seguras. Las referencias a `localhost` o la red interna de Docker (`localstack:4566`) fallan al ejecutarse en el navegador físico del usuario. Además, las políticas estrictas de GitHub bloquean peticiones CORS si los puertos no son explícitamente públicos.
 

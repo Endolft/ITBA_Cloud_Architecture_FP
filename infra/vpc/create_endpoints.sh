@@ -9,7 +9,7 @@ echo "Configurando VPC Gateway Endpoints para S3..."
 VPC_ID=$(get_vpc_id)
 
 if [ -z "$VPC_ID" ] || [ "$VPC_ID" == "None" ]; then
-    echo "❌ ERROR: No se encontró la VPC 'taller-vpc'. Ejecutá primero deploy_vpc.sh"
+    echo "❌ ERROR: No se encontró la VPC 'taller-vpc'. Ejecuta primero deploy_vpc.sh"
     exit 1
 fi
 

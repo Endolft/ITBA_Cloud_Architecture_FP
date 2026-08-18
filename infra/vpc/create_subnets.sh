@@ -9,7 +9,7 @@ source "$DIR/../config.sh"
 VPC_ID=$(get_vpc_id)
 
 if [ "$VPC_ID" == "None" ] || [ -z "$VPC_ID" ]; then
-    echo " ERROR: No existe la VPC '$VPC_NAME'. Ejecutá primero create_vpc.sh"
+    echo " ERROR: No existe la VPC '$VPC_NAME'. Ejecuta primero create_vpc.sh"
     exit 1
 fi
 

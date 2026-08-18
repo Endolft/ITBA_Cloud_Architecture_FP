@@ -37,7 +37,7 @@ git clone <URL_DE_TU_REPOSITORIO>
 cd ITBA_Cloud_Architecture_FP
 ```
 
-2. levantar los containers
+2. Levantar los contenedores
 ```bash
 docker compose up -d
 ```
@@ -69,7 +69,7 @@ Pasos obligatorios antes de probar la aplicación:
 - **docs/** — Documentación y reportes
   - `architecture.md` — Informe de Arquitectura As-Is/To-Be y Objetivos SMART
   - `decisions.md` — Registro de 12 Decisiones de Arquitectura (ADR)
-  - `plan.md` — Plan de Migración a 6 semanas y Matriz de Riesgos
+  - `plan.md` — Plan de Migración a 8 semanas y Matriz de Riesgos
   - `costs_calculator.pdf` — Estimación de Costos Mensuales (AWS Calculator)
 
 - **infra/** — Scripts de infraestructura como código (IaC)

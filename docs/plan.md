@@ -72,6 +72,28 @@ Se asignaron bloques `/24` para permitir una escalabilidad holgada (hasta 251 re
 | **AZ-1b** | Privada (App) | ECS Fargate Backend (Mitad de tráfico) | `10.0.5.0/24` |
 | **AZ-1b** | Privada (Datos) | RDS Standby (Alta Disponibilidad) | `10.0.6.0/24` |
 
+#### 2.4. Estrategia de Recuperación ante Fallos de RDS
+
+La instancia principal de Amazon RDS se desplegará con Multi-AZ mediante `--multi-az`. RDS mantendrá una instancia standby en una Zona de Disponibilidad diferente y ejecutará el failover automáticamente cuando detecte una falla de infraestructura, pérdida de conectividad o una operación de mantenimiento planificada.
+
+El endpoint DNS de RDS se mantiene estable durante el failover. Por este motivo, las tareas de ECS deben conectarse siempre mediante el endpoint administrado por RDS y nunca mediante una dirección IP fija. Las conexiones abiertas durante el incidente pueden fallar y la aplicación deberá reintentarlas mediante un mecanismo de backoff.
+
+**Objetivos operativos:**
+
+- **RTO objetivo:** 5 minutos para restablecer la conexión de la aplicación.
+- **RPO objetivo:** cercano a 0, debido a la replicación síncrona de Multi-AZ.
+- **Backups:** retención de 7 días, además de snapshots manuales antes de cambios relevantes.
+
+**Procedimiento de validación posterior al failover:**
+
+1. Confirmar mediante `describe-db-instances` que la instancia se encuentra disponible.
+2. Verificar que el endpoint DNS de RDS continúe siendo el utilizado por ECS.
+3. Ejecutar una consulta de prueba sobre la base de datos.
+4. Confirmar que el servicio ECS vuelva a procesar solicitudes correctamente.
+5. Revisar los errores de conexión y los tiempos de recuperación en CloudWatch Logs.
+
+**Métricas de monitoreo:** configurar alarmas para `CPUUtilization`, `DatabaseConnections`, `FreeStorageSpace`, `FreeableMemory` y el estado de disponibilidad de la instancia. La Read Replica se utilizará para consultas analíticas y no reemplaza la standby Multi-AZ: la primera replica lecturas de forma asíncrona, mientras que la segunda proporciona recuperación automática ante fallas.
+
 <br>
 
 <p align="center">
@@ -98,4 +120,4 @@ Se asignaron bloques `/24` para permitir una escalabilidad holgada (hasta 251 re
 - **Fase 1 (Semanas 1-2) - Almacenamiento y Seguridad:** Creación de los buckets S3, configuración de políticas de acceso estricto, Reglas de Ciclo de Vida y modificación del código backend para soportar generación de *Presigned URLs*.
 - **Fase 2 (Semanas 3-4) - Capa de Datos:** Despliegue de Amazon RDS Multi-AZ y configuración de la Read Replica. Migración de los datos históricos desde el volumen Docker local hacia la nueva instancia en la nube.
 - **Fase 3 (Semanas 5-6) - Capa de Cómputo:** Subida de las imágenes a Amazon ECR. Despliegue del Frontend estático en S3 y configuración de la CDN en CloudFront y ECS Fargate (Backend) junto con el Application Load Balancer y las alarmas de Auto-Scaling.
-- **Fase 4 (Semanas 7-8) - Pruebas y Go-Live:** Ejecución de pruebas de carga para validar el escalado horizontal. Apagado paulatino del servidor NGINX local y redirección final de los registros DNS hacia la nueva infraestructura en AWS. Monitoreo intensivo de las primeras 48 horas.
+- **Fase 4 (Semanas 7-8) - QA, Seguridad y Go-Live:** Ejecución de pruebas funcionales, de integración, carga y seguridad para validar el escalado horizontal, el objetivo de latencia y los controles de acceso. Realización de pruebas de aceptación del usuario (UAT), validación del procedimiento de rollback y corrección de los hallazgos críticos. Luego, apagado paulatino del servidor NGINX local, redirección final de los registros DNS hacia AWS y monitoreo intensivo durante las primeras 48 horas posteriores al corte.

@@ -29,7 +29,7 @@ EOF
 
 
 # 1. TASK EXECUTION ROLE (Agente de ECS -> Infraestructura)
-echo "👤 Verificando Execution Role '$EXECUTION_ROLE_NAME'..."
+echo "Verificando Execution Role '$EXECUTION_ROLE_NAME'..."
 if aws iam get-role --role-name "$EXECUTION_ROLE_NAME" --region "$REGION" --endpoint-url "$ENDPOINT" >/dev/null 2>&1; then
     echo "El rol '$EXECUTION_ROLE_NAME' ya existe."
 else
@@ -75,7 +75,7 @@ aws iam put-role-policy \
 
 
 # 2. TASK ROLE (Código Backend -> Aplicación)
-echo "👤 Verificando Task Role '$TASK_ROLE_NAME'..."
+echo "Verificando Task Role '$TASK_ROLE_NAME'..."
 if aws iam get-role --role-name "$TASK_ROLE_NAME" --region "$REGION" --endpoint-url "$ENDPOINT" >/dev/null 2>&1; then
     echo "El rol '$TASK_ROLE_NAME' ya existe."
 else

@@ -28,7 +28,7 @@ ALB_SG=$(get_sg_id "taller-alb-sg")
 # Validación de recursos base
 if [ -z "$VPC_ID" ] || [ "$VPC_ID" == "None" ] || [ -z "$SUBNET_1" ] || [ -z "$ALB_SG" ]; then
     echo "❌ ERROR: Faltan recursos base (VPC, Subredes públicas o Security Group)."
-    echo "Ejecutá el script de VPC/Red primero."
+    echo "Ejecuta primero el script de VPC y red."
     exit 1
 fi
 
