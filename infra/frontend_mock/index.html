@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Architecture - Photo Vault</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #38bdf8;
+            --accent-hover: #0284c7;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --success: #22c55e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        header h1 {
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(to right, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            background-color: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .dropzone {
+            border: 2px dashed var(--border);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background-color: rgba(15, 23, 42, 0.4);
+        }
+
+        .dropzone:hover {
+            border-color: var(--accent);
+            background-color: rgba(56, 189, 248, 0.05);
+        }
+
+        .dropzone p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            width: 100%;
+            margin-top: 1rem;
+            padding: 0.75rem 1.25rem;
+            background-color: var(--accent);
+            color: #0f172a;
+            font-weight: 700;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #log-output {
+            background-color: #090d16;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            max-height: 150px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Simulación Frontend</h1>
+        <p>Frontend S3 ➔ ALB / ECS ➔ S3 Direct Upload (Presigned URL)</p>
+    </header>
+
+    <div class="container">
+        
+        <!-- Status Card -->
+        <div class="card">
+            <div class="card-title">
+                <span>Estado de la Arquitectura</span>
+                <span class="status-badge"><span class="dot"></span> Online</span>
+            </div>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                Bucket Frontend: <strong>taller-frontend-static</strong><br>
+                Bucket Storage: <strong>taller-backend-storage</strong>
+            </p>
+        </div>
+
+        <!-- Direct Upload Card -->
+        <div class="card">
+            <div class="card-title">Subida Directa a S3 (Presigned URL)</div>
+            
+            <div class="dropzone" onclick="document.getElementById('fileInput').click()">
+                <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--accent); margin: 0 auto;">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                <p id="fileLabel">Hacé clic o arrastrá una imagen aquí</p>
+                <input type="file" id="fileInput" accept="image/*" onchange="updateFileLabel()">
+            </div>
+
+            <button class="btn" id="uploadBtn" onclick="uploadImage()">Subir Imagen a S3</button>
+        </div>
+
+        <!-- Terminal Logs Card -->
+        <div class="card">
+            <div class="card-title">Registro de Peticiones</div>
+            <div id="log-output">Esperando acciones...</div>
+        </div>
+
+    </div>
+
+    <script>
+        function log(msg) {
+            const el = document.getElementById('log-output');
+            el.innerText += `\n[${new Date().toLocaleTimeString()}] ${msg}`;
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function updateFileLabel() {
+            const input = document.getElementById('fileInput');
+            if (input.files.length > 0) {
+                document.getElementById('fileLabel').innerText = `Seleccionado: ${input.files[0].name}`;
+            }
+        }
+
+        async function uploadImage() {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length === 0) {
+                alert('Por favor elegí una imagen primero');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            log(`Iniciando flujo para: ${file.name}`);
+
+            try {
+                // 1. Pedir la Presigned URL al backend (ALB -> ECS)
+                log('1. Solicitando Presigned URL al Backend...');
+                /* 
+                   Cuando esté la API lista en backend:
+                   const res = await fetch('/api/upload-url?filename=' + encodeURIComponent(file.name));
+                   const { url } = await res.json();
+                */
+                log('✅ Flujo de interfaz preparado para conectar con ECS.');
+            } catch (err) {
+                log(`❌ Error: ${err.message}`);
+            }
+        }
+    </script>
+</body>
+</html>
