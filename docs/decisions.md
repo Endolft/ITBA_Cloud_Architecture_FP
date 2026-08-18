@@ -150,3 +150,15 @@ Alternativas: usar un único rol unificado para ejecución y tarea (más simple,
 Tradeoff: duplica la cantidad de políticas y roles de IAM a gestionar en los scripts de automatización.
 
 Resultado: aislamiento total de permisos entre la capa de orquestación de AWS y la capa de aplicación/cómputo.
+
+---
+
+### 011 - Despliegue de Frontend Estático en S3 con CORS y Subida Directa (Presigned URLs)
+
+Decision: alojar la interfaz de usuario como sitio web estático en un bucket dedicado de Amazon S3 (`taller-frontend-static`), configurando reglas de CORS en el bucket de almacenamiento (`taller-backend-storage`) para habilitar la subida directa de archivos desde el navegador mediante Presigned URLs.
+
+Contexto: evitar el costo y la sobrecarga de mantener un servidor de cómputo (ECS/Nginx) corriendo 24/7 únicamente para servir HTML/CSS/JS estáticos, e impedir que el tráfico de archivos de imagen pase a través del Backend o del Load Balancer (ALB), evitando cuellos de botella de red y consumo innecesario de CPU/Memoria.
+
+Tradeoff: exige configurar políticas de CORS explícitas en el bucket de destino y delegar la firma de URLs temporales al Backend, a cambio de desacoplar por completo la transferencia de datos.
+
+Resultado: arquitectura Serverless de distribución estática de costo casi nulo, escalable a millones de peticiones y alineada con las mejores prácticas de AWS para manejo de blobs.
