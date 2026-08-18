@@ -68,7 +68,7 @@ Pasos obligatorios antes de probar la aplicación:
 
 - **docs/** — Documentación y reportes
   - `architecture.md` — Informe de Arquitectura As-Is/To-Be y Objetivos SMART
-  - `decisions.md` — Registro de 12 Decisiones de Arquitectura (ADR)
+  - `decisions.md` — Registro de 13 Decisiones de Arquitectura (ADR)
   - `plan.md` — Plan de Migración a 8 semanas y Matriz de Riesgos
   - `costs_calculator.pdf` — Estimación de Costos Mensuales (AWS Calculator)
 
@@ -82,6 +82,7 @@ Pasos obligatorios antes de probar la aplicación:
   - `iam/` — Roles y Políticas de Menor Privilegio (ECS Task/Execution)
   - `alb/` — Application Load Balancer y Target Groups
   - `ecs/` — Tareas de Fargate y Auto-Scaling
+  - `ecs/configure_autoscaling.sh` — Escalado por CPU del servicio ECS
 
 - **scripts/**
   - `deploy_all.sh` — Orquestador principal de despliegue idempotente

@@ -39,7 +39,7 @@ Resultado: entorno de desarrollo 1:1, gratuito, resiliente y 100% compatible con
 
 ### 002 - Arquitectura de red VPC Multi-AZ y subredes privadas
 
-Decision: diseñar una VPC en 2 Zonas de Disponibilidad (us-east-1a y us-east-1b) dividida en 2 subredes públicas y 2 subredes privadas.
+Decision: diseñar una VPC en 2 Zonas de Disponibilidad (us-east-1a y us-east-1b) dividida en 2 subredes públicas, 2 subredes privadas de aplicación y 2 subredes privadas de datos.
 
 Contexto: aislar la base de datos (RDS) y los contenedores de la aplicación (ECS) del acceso directo desde Internet, dejando únicamente el Load Balancer (ALB) expuesto públicamente.
 
@@ -100,15 +100,15 @@ Resultado: el script create_alb.sh omite los comandos de AWS al detectar el ento
 ---
 
 ### 006 - Estrategia de Aislamiento de Red y Ejecución de ECS
-Decision: ejecutar el contenedor de la aplicación aislado en la red interna de Docker sin exponer el puerto 8000 a la máquina host (-p), delegando el acceso exclusivamente a Caddy.
+Decision: ejecutar el contenedor de la aplicación aislado en la red interna de Docker sin publicar el puerto 8000 cuando se lanza mediante `create_ecs.sh`, delegando el acceso principal a Caddy.
 
 Contexto: en AWS Fargate, las tareas corren en subredes privadas con el modo de red awsvpc y solo son accesibles a través del Target Group del ALB. Exponer el puerto de la aplicación al host rompería el modelo de seguridad Zero-Trust en la simulación local.
 
-Alternativas: exponer el puerto 8000 al host mediante -p 8000:8000 (más simple, pero expone el backend directamente a Internet sin pasar por el balanceador).
+Alternativas: exponer el puerto 8000 al host mediante `-p 8000:8000` (más simple, pero expone el backend directamente sin pasar por el balanceador). Para facilitar pruebas directas, `compose.yaml` publica temporalmente `8000:8000`; esta excepción pertenece únicamente al entorno de desarrollo.
 
 Tradeoff: la aplicación solo es accesible vía http://localhost (puerto 80 de Caddy), exigiendo que el servicio de ruteo esté levantado para realizar pruebas.
 
-Resultado: réplica 1:1 de la arquitectura de seguridad de AWS en local (Usuario ➔ Caddy:80 ➔ backend:8000).
+Resultado: el flujo recomendado replica la arquitectura de AWS en local (Usuario ➔ Caddy:80 ➔ backend:8000), mientras que el puerto 8000 publicado por Compose queda limitado a tareas de diagnóstico.
 
 ---
 
@@ -136,7 +136,7 @@ Alternativas: desplegar RDS en subredes públicas (inaceptable a nivel seguridad
 
 Tradeoff: dificulta la conexión directa desde herramientas GUI locales sin un túnel de red o bastión, pero garantiza un esquema Zero-Trust.
 
-Resultado: capa de datos aislada, segura e idempotente tanto en desarrollo local como en AWS real.
+Resultado: capa de datos aislada, segura e idempotente tanto en desarrollo local como en AWS real. La instancia principal se configura con Multi-AZ; la Read Replica forma parte del diseño objetivo y su creación debe automatizarse con `create-db-instance-read-replica` antes de considerarla implementada completamente.
 
 ---
 
@@ -159,6 +159,8 @@ Decision: alojar la interfaz de usuario como sitio web estático en un bucket de
 
 Contexto: evitar el costo y la sobrecarga de mantener un servidor de cómputo (ECS/Nginx) corriendo 24/7 únicamente para servir HTML/CSS/JS estáticos, e impedir que el tráfico de archivos de imagen pase a través del Backend o del Load Balancer (ALB), evitando cuellos de botella de red y consumo innecesario de CPU/Memoria.
 
+Alternativas: servir el frontend desde ECS/Nginx (mayor costo operativo), mantener Firebase Storage (límite de cuota y menor integración con la VPC) o enviar las imágenes a través del backend y el ALB (mayor consumo de CPU, memoria y transferencia).
+
 Tradeoff: exige configurar políticas de CORS explícitas en el bucket de destino y delegar la firma de URLs temporales al Backend, a cambio de desacoplar por completo la transferencia de datos.
 
 Resultado: arquitectura Serverless de distribución estática de costo casi nulo, escalable a millones de peticiones y alineada con las mejores prácticas de AWS para manejo de blobs.
@@ -176,3 +178,23 @@ Alternativas: requerir Docker Desktop local obligatorio (excluye a usuarios con 
 Tradeoff: añade complejidad al código JavaScript del Frontend (detección de entorno en runtime mediante `window.location.origin` y expresiones regulares) y depende de un paso manual del desarrollador (cambiar puertos a Public), pero garantiza que el mismo código funcione en local y en la nube sin modificaciones.
 
 Resultado: frontend resiliente, portable y plug-and-play, capaz de inferir su propio entorno de red para consumir el Backend y el bucket S3 simulado correctamente.
+
+---
+
+### 012 - Auto Scaling de ECS mediante Application Auto Scaling
+
+Decision: configurar el escalado horizontal del servicio `taller-service` mediante AWS Application Auto Scaling y seguimiento de la utilización promedio de CPU.
+
+Tradeoff: el escalado automático agrega dependencia de CloudWatch y Application Auto Scaling, además de posibles variaciones de costo, pero permite ajustar la capacidad al tráfico real.
+
+---
+
+### 013 - Distribución del Frontend mediante CloudFront y S3 privado
+
+Decision: distribuir el frontend estático mediante Amazon CloudFront utilizando el bucket S3 como origen privado protegido por Origin Access Control (OAC).
+
+Contexto: CloudFront reduce la latencia de entrega, habilita HTTPS y evita que el bucket frontend deba exponerse públicamente. El acceso directo al bucket se reserva para el despliegue y la administración de objetos.
+
+Alternativas: servir el frontend directamente desde S3 (menor costo, pero sin CDN ni controles equivalentes), mantenerlo en ECS/Nginx (mayor operación) o utilizar un CDN externo (agrega otro proveedor y configuración).
+
+Tradeoff: CloudFront agrega costo y tiempo de propagación de cambios, pero mejora el rendimiento, la seguridad del origen y la experiencia de acceso global.
