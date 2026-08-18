@@ -28,6 +28,14 @@ if [[ "$ENDPOINT" == *"localhost:4566"* ]] || [[ "$ENDPOINT" == *"127.0.0.1:4566
     NETWORK=$(docker network ls --format "{{.Name}}" | grep "default" | grep -i "itba" | head -n 1)
     [ -z "$NETWORK" ] && NETWORK="bridge"
 
+    if ! docker image inspect "$IMAGE_NAME" >/dev/null 2>&1; then
+        echo "Construyendo la imagen local '$IMAGE_NAME'..."
+        docker build \
+          --tag "$IMAGE_NAME" \
+          --file "$DIR/../../backend_mock/Dockerfile" \
+          "$DIR/../.."
+    fi
+
     # 3. Limpiar contenedor anterior si ya existía
     docker rm -f taller-backend-local 2>/dev/null || true
 
@@ -38,10 +46,10 @@ if [[ "$ENDPOINT" == *"localhost:4566"* ]] || [[ "$ENDPOINT" == *"127.0.0.1:4566
       --network "$NETWORK" \
       -e POSTGRES_HOST="postgres" \
       -e POSTGRES_PORT="5432" \
-      -e POSTGRES_DB="${POSTGRES_DB:-appdb}" \
+      -e POSTGRES_DB="${POSTGRES_DB:-workshop_db}" \
       -e POSTGRES_USER="${POSTGRES_USER:-postgres}" \
       -e POSTGRES_PASSWORD="$DB_PASS" \
-      -e AWS_ENDPOINT_URL="http://cloud-foundations-localstack:4566" \
+      -e AWS_ENDPOINT_URL="http://localstack:4566" \
       -e AWS_DEFAULT_REGION="$REGION" \
       -e AWS_ACCESS_KEY_ID="test" \
       -e AWS_SECRET_ACCESS_KEY="test" \
